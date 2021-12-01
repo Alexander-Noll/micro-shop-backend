@@ -33,14 +33,14 @@ export class BuilderService implements OnModuleInit {
       },
     });
     await this.handleProductStored({
-      blockId: 'rubber_boots',
-      time: '11:00:00',
+      blockId: 'rubber_gloves',
+      time: '12:00:00',
       eventType: 'ProductStored',
-      tags: ['product', 'rubber_boots'],
+      tags: ['product', 'rubber_gloves'],
       payload: {
-        product: 'rubber_boots',
-        amount: 23,
-        location: 'entry_door',
+        product: 'rubber_gloves',
+        amount: 12,
+        location: 'back_door',
       },
     });
   }
@@ -103,7 +103,7 @@ export class BuilderService implements OnModuleInit {
       const storeSuccess = await this.storeEvent(event);
 
       if (storeSuccess) {
-        //store a product pbject
+        //store a product object
         const productPatch = {
           product: event.blockId,
           amount: event.payload.amount,

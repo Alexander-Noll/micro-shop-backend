@@ -4,7 +4,7 @@ import { BuildEvent } from './modules/builder/build-event.schema';
 
 @Controller()
 export class AppController {
-  constructor(private appService: AppService) {}
+  constructor(private readonly appService: AppService) {}
 
   @Get()
   getHello(): string {
