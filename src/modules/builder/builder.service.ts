@@ -18,9 +18,11 @@ export class BuilderService implements OnModuleInit {
     await this.reset();
   }
 
-  async clear() {
+  async clear() { // extended to clear all tables
     await this.productsModel.deleteMany();
     await this.buildEventModel.deleteMany();
+    await this.ordersModel.deleteMany();
+    await this.customersModel.deleteMany();
   }
 
   async getCustomers(): Promise<any> {
