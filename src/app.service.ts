@@ -9,6 +9,16 @@ export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
+
+  async getQuerry(key: string): Promise<any> {
+    if (key === 'customers') {
+      return await this.modelBuilderService.getCustomers();
+    }
+    return {
+      error: `MicroShop backend does not know how to handle query key: ${key}`,
+    };
+  }
+
   async getReset() {
     await this.modelBuilderService.reset();
     return 'the shop database is clear';
@@ -16,7 +26,14 @@ export class AppService {
   async handleEvent(event: BuildEvent) {
     if (event.eventType === 'productStored') {
       return await this.modelBuilderService.handleProductStored(event);
+    } else if (event.eventType === 'addOffer') {
+      return await this.modelBuilderService.handleAddOffer(event);
+    } else if (event.eventType === 'placeOrder') {
+      return await this.modelBuilderService.handlePlaceOrder(event);
     }
-    return event;
+
+    return {
+      error: `MicroShop backend does not know how to handle: ${event.eventType}`,
+    };
   }
 }

@@ -1,19 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ versionKey: false }) // { versionKey: false } to remove the _v field
-export class MSProduct {
+export class Order {
+  @Prop({ required: true })
+  code: string;
+
   @Prop({ required: true })
   product: string;
 
-  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
   @Prop({ required: true })
-  amount: number = 0;
+  customer: string;
 
   @Prop({ required: true })
-  amountTime: string;
+  address: string;
 
-  @Prop()
-  price: string;
+  @Prop({ required: true })
+  state: string;
 }
 
-export const ProductSchema = SchemaFactory.createForClass(MSProduct);
+export const OrderSchema = SchemaFactory.createForClass(Order);

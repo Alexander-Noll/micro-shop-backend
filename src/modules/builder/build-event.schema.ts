@@ -1,7 +1,7 @@
 import { Schema as MongooseSchema } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-@Schema()
+@Schema({ versionKey: false }) // { versionKey: false } to remove the _v field
 export class BuildEvent {
   @Prop({ required: true })
   eventType: string;

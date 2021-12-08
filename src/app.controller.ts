@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { BuildEvent } from './modules/builder/build-event.schema';
 
@@ -9,6 +9,12 @@ export class AppController {
   @Get()
   getHello(): string {
     return this.appService.getHello();
+  }
+
+  @Get('query/:key')
+  async getQuerry(@Param('key') key: string): Promise<string> {
+    const result: Promise<any> = await this.appService.getQuerry(key);
+    return result;
   }
 
   @Get('reset')
