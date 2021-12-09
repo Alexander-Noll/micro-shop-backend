@@ -26,7 +26,7 @@ export class BuilderService implements OnModuleInit {
   }
 
   async getCustomers(): Promise<any> {
-    return await this.customersModel.find({}).exec;
+    return await this.customersModel.find({}).exec();
   }
 
   async reset() {
