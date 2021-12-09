@@ -172,7 +172,6 @@ export class BuilderService implements OnModuleInit {
   async handlePlaceOrder(event: BuildEvent) {
     // store a build event
     const storeSuccess = await this.storeEvent(event);
-    let newProduct = null;
     if (storeSuccess) {
       // sotre an order object
       try {
