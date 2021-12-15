@@ -28,7 +28,8 @@ export class AppService {
       return await this.modelBuilderService.handleProductStored(event);
     } else if (event.eventType === 'addOffer') {
       return await this.modelBuilderService.handleAddOffer(event);
-    } else if (event.eventType === 'placeOrder') {
+    } else if (
+      event.eventType === 'placeOrder' || event.eventType === 'orderPicked') {
       return await this.modelBuilderService.handlePlaceOrder(event);
     }
 

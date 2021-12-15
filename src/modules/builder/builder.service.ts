@@ -18,7 +18,8 @@ export class BuilderService implements OnModuleInit {
     await this.reset();
   }
 
-  async clear() { // extended to clear all tables
+  async clear() {
+    // extended to clear all tables
     await this.productsModel.deleteMany();
     await this.buildEventModel.deleteMany();
     await this.ordersModel.deleteMany();
@@ -73,7 +74,12 @@ export class BuilderService implements OnModuleInit {
     const newEvent = await this.buildEventModel
       .findOneAndUpdate(
         { blockId: event.blockId, time: { $lt: event.time } },
-        event,
+        {
+          tags: event.tags,
+          time: event.time,
+          eventType: event.eventType,
+          payload: event.payload,
+        },
         { new: true },
       )
       .exec();
@@ -91,16 +97,9 @@ export class BuilderService implements OnModuleInit {
       const newProduct = await this.productsModel
         .findOneAndUpdate(
           { product: newProductData.product },
-          {
-            $inc: { amount: newProductData.amount },
-            $set: {
-              amountTime: newProductData.amountTime,
-              product: newProductData.product,
-            },
-          },
-          { upsert: true, new: true },
-        )
-        .exec();
+           newProductData,
+          {upsert: true,new: true,}
+          ).exec();
       console.log(
         'BuilderService.storeProduct storeProduct: \n' +
           JSON.stringify(newProduct, null, 3),
@@ -120,9 +119,10 @@ export class BuilderService implements OnModuleInit {
 
     if (storeSuccess) {
       //store a product object
+      const newAmount = await this.computeNewProductAmount(event.blockId);
       const productPatch = {
         product: event.blockId,
-        amount: event.payload.amount,
+        amount: newAmount,
         amountTime: event.time,
       };
       newProduct = await this.storeProduct(productPatch);
@@ -184,10 +184,7 @@ export class BuilderService implements OnModuleInit {
             { upsert: true, new: true },
           )
           .exec();
-        console.log(
-          'BilderService.handlePlaceOrder newOrder: \n' +
-            JSON.stringify(newOrder, null, 3),
-        );
+
         // and upsert customer
         const newCustomer = await this.customersModel
           .findOneAndUpdate(
@@ -201,6 +198,15 @@ export class BuilderService implements OnModuleInit {
             { upsert: true, new: true },
           )
           .exec();
+
+        const newAmount = await this.computeNewProductAmount(
+          event.payload.product,
+        );
+        await this.productsModel.findOneAndUpdate(
+          { product: event.payload.product },
+          { amount: newAmount },
+        );
+
         return newOrder;
       } catch (error) {
         console.log(
@@ -209,5 +215,23 @@ export class BuilderService implements OnModuleInit {
         );
       }
     }
+  }
+
+  async computeNewProductAmount(productName) {
+    // last productStored amount
+    const lastStoreEvent = await this.buildEventModel
+      .findOne({ blockId: productName })
+      .exec();
+    const lastAmount = lastStoreEvent.payload.amount;
+
+    //minus new orders
+    const newOrdersList: any[] = await this.buildEventModel
+      .find({
+        eventType: 'placeOrder',
+        'payload.product': productName,
+      })
+      .exec();
+
+    return lastAmount;
   }
 }
