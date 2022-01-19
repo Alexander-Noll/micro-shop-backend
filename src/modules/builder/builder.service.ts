@@ -1,6 +1,7 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { SetPriceDto } from 'src/common/SetPriceDto';
 import { BuildEvent } from './build-event.schema';
 import { Customer } from './customer.schema';
 import { Order } from './order.schema';
@@ -8,6 +9,7 @@ import { MSProduct } from './product.schema';
 
 @Injectable()
 export class BuilderService implements OnModuleInit {
+
   constructor(
     @InjectModel('eventStore') private buildEventModel: Model<BuildEvent>,
     @InjectModel('products') private productsModel: Model<MSProduct>,
@@ -59,6 +61,14 @@ export class BuilderService implements OnModuleInit {
 
   async getProduct(name){
     return await this.productsModel.findOne({product:name}).exec();
+  }
+
+  async setPrice(params: SetPriceDto) {
+    return await this.productsModel.findOneAndUpdate(
+      {product: params.product},
+      {price: `${params.price}`},
+      {new:true}
+    ).exec();
   }
 
   async reset() {
