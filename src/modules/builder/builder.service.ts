@@ -24,10 +24,41 @@ export class BuilderService implements OnModuleInit {
     await this.buildEventModel.deleteMany();
     await this.ordersModel.deleteMany();
     await this.customersModel.deleteMany();
+
+
+    // bad style - better add the data via test
+    await this.storeProduct({
+      product:"jeans",
+      amount:10,
+      amountTime: "12:00",
+      price:0.0
+    });
+
+    await this.storeProduct({
+      product:"white tshirt",
+      amount:11,
+      amountTime: "12:01",
+      price:0.0
+    });
+
+    await this.storeProduct({
+      product:"green socks",
+      amount:12,
+      amountTime: "12:02",
+      price:0.0
+    });
   }
 
   async getCustomers(): Promise<any> {
     return await this.customersModel.find({}).exec();
+  }
+
+  async getProducts(){
+    return await this.productsModel.find({}).exec();
+  }
+
+  async getProduct(name){
+    return await this.productsModel.findOne({product:name}).exec();
   }
 
   async reset() {

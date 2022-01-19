@@ -13,6 +13,11 @@ export class AppService {
   async getQuerry(key: string): Promise<any> {
     if (key === 'customers') {
       return await this.modelBuilderService.getCustomers();
+    } else if (key === 'products') {
+      return await this.modelBuilderService.getProducts();
+    } else if (key.startsWith('products-')) {
+      const name = key.substring('products-'.length);
+      return await this.modelBuilderService.getProduct(name);
     }
     return {
       error: `MicroShop backend does not know how to handle query key: ${key}`,
@@ -29,7 +34,9 @@ export class AppService {
     } else if (event.eventType === 'addOffer') {
       return await this.modelBuilderService.handleAddOffer(event);
     } else if (
-      event.eventType === 'placeOrder' || event.eventType === 'orderPicked') {
+      event.eventType === 'placeOrder' ||
+      event.eventType === 'orderPicked'
+    ) {
       return await this.modelBuilderService.handlePlaceOrder(event);
     }
 
