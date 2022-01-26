@@ -5,6 +5,7 @@ import { BuilderService } from './builder.service';
 import { ProductSchema } from './product.schema';
 import { OrderSchema } from './order.schema';
 import { CustomerSchema } from './customer.schema';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { CustomerSchema } from './customer.schema';
       { name: 'products', schema: ProductSchema },
       { name: 'orders', schema: OrderSchema },
       { name: 'customers', schema: CustomerSchema },
-    ]),
+    ]),HttpModule
   ],
   providers: [BuilderService],
   exports: [BuilderService],

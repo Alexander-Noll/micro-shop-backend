@@ -1,21 +1,28 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { PlaceOrderDto } from 'src/common/PlaceOrderDto';
 import { SetPriceDto } from 'src/common/SetPriceDto';
 import { BuildEvent } from './build-event.schema';
 import { Customer } from './customer.schema';
 import { Order } from './order.schema';
 import { MSProduct } from './product.schema';
+import Subscription from './subscription';
 
 @Injectable()
 export class BuilderService implements OnModuleInit {
-
   constructor(
     @InjectModel('eventStore') private buildEventModel: Model<BuildEvent>,
     @InjectModel('products') private productsModel: Model<MSProduct>,
     @InjectModel('orders') private ordersModel: Model<Order>,
     @InjectModel('customers') private customersModel: Model<Customer>,
+
+    private httpService: HttpService,
   ) {}
+
+  subscribersUrls: string[] = [];
+
   async onModuleInit() {
     await this.reset();
   }
@@ -27,27 +34,26 @@ export class BuilderService implements OnModuleInit {
     await this.ordersModel.deleteMany();
     await this.customersModel.deleteMany();
 
-
     // bad style - better add the data via test
     await this.storeProduct({
-      product:"jeans",
-      amount:10,
-      amountTime: "12:00",
-      price:0.0
+      product: 'jeans',
+      amount: 10,
+      amountTime: '12:00',
+      price: 0.0,
     });
 
     await this.storeProduct({
-      product:"white tshirt",
-      amount:11,
-      amountTime: "12:01",
-      price:0.0
+      product: 'white tshirt',
+      amount: 11,
+      amountTime: '12:01',
+      price: 0.0,
     });
 
     await this.storeProduct({
-      product:"green socks",
-      amount:12,
-      amountTime: "12:02",
-      price:0.0
+      product: 'green socks',
+      amount: 12,
+      amountTime: '12:02',
+      price: 0.0,
     });
   }
 
@@ -55,20 +61,87 @@ export class BuilderService implements OnModuleInit {
     return await this.customersModel.find({}).exec();
   }
 
-  async getProducts(){
+  async getProducts() {
     return await this.productsModel.find({}).exec();
   }
 
-  async getProduct(name){
-    return await this.productsModel.findOne({product:name}).exec();
+  async getProduct(name) {
+    return await this.productsModel.findOne({ product: name }).exec();
   }
 
   async setPrice(params: SetPriceDto) {
-    return await this.productsModel.findOneAndUpdate(
-      {product: params.product},
-      {price: `${params.price}`},
-      {new:true}
-    ).exec();
+    return await this.productsModel
+      .findOneAndUpdate(
+        { product: params.product },
+        { price: `${params.price}` },
+        { new: true },
+      )
+      .exec();
+  }
+
+  async placeOrder(params: PlaceOrderDto) {
+    const result = await this.ordersModel
+      .findOneAndUpdate(
+        { code: params.order },
+        {
+          code: params.order,
+          product: params.product,
+          customer: params.customer,
+          address: params.address,
+          state: 'order placed',
+        },
+        { upsert: true, new: true },
+      )
+      .exec();
+    console.log(`placeOrder stored: \n ${JSON.stringify(result, null, 3)}`);
+
+    const newCustomer = await this.customersModel
+      .findOneAndUpdate(
+        {
+          name: params.customer,
+        },
+        {
+          name: params.customer,
+          lastAddress: params.address,
+        },
+        { upsert: true, new: true },
+      )
+      .exec();
+
+    console.log(`Customer: \n ${JSON.stringify(newCustomer, null, 3)}`);
+    console.log(params.customer);
+    console.log(params.address);
+
+    const event = {
+      blockId: params.order,
+      time: new Date().toISOString(),
+      eventType: 'productOrdered',
+      tags: ['products', params.order],
+      payload: params,
+    };
+    await this.storeEvent(event);
+    this.publish(event);
+  }
+
+  publish(newEvent: BuildEvent) {
+    console.log(
+      'build service publish subscriberUrls: \n' +
+        JSON.stringify(this.subscribersUrls, null, 3),
+    );
+    const oldUrls = this.subscribersUrls;
+    this.subscribersUrls = [];
+    for (let subscriberUrl of oldUrls) {
+      this.httpService.post(subscriberUrl, newEvent).subscribe(
+        (response) => {
+          this.subscribersUrls.push(subscriberUrl);
+        },
+        (error) => {
+          console.log(
+            'build service publish error: \n' + JSON.stringify(error, null, 3),
+          );
+        },
+      );
+    }
   }
 
   async reset() {
@@ -136,11 +209,11 @@ export class BuilderService implements OnModuleInit {
   async storeProduct(newProductData: any) {
     try {
       const newProduct = await this.productsModel
-        .findOneAndUpdate(
-          { product: newProductData.product },
-           newProductData,
-          {upsert: true,new: true,}
-          ).exec();
+        .findOneAndUpdate({ product: newProductData.product }, newProductData, {
+          upsert: true,
+          new: true,
+        })
+        .exec();
       console.log(
         'BuilderService.storeProduct storeProduct: \n' +
           JSON.stringify(newProduct, null, 3),
@@ -274,5 +347,23 @@ export class BuilderService implements OnModuleInit {
       .exec();
 
     return lastAmount;
+  }
+
+  async handleSubscription(subscription: Subscription) {
+    // store in subscriber list
+    if (!this.subscribersUrls.includes(subscription.subscriberUrl)) {
+      this.subscribersUrls.push(subscription.subscriberUrl);
+    }
+
+    // publish events after last event
+    const test = await this.buildEventModel.find({});
+
+    const eventList = await this.buildEventModel
+      .find({
+        eventType: 'productStored',
+        time: { $gt: subscription.lastEventTime },
+      })
+      .exec();
+    return eventList;
   }
 }
