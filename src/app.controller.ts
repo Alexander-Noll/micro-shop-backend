@@ -27,6 +27,7 @@ export class AppController implements OnModuleInit {
     this.subscribeAtWarehouse();
   }
   subscribeAtWarehouse() {
+    console.log(`subscribeAtShop  ${JSON.stringify(this.publishers.length,null,3)}`)
     if (this.publishers.length > 0) {
       return;
     }

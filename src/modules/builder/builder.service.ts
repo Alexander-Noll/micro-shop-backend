@@ -133,6 +133,7 @@ export class BuilderService implements OnModuleInit {
     for (let subscriberUrl of oldUrls) {
       this.httpService.post(subscriberUrl, newEvent).subscribe(
         (response) => {
+          
           this.subscribersUrls.push(subscriberUrl);
         },
         (error) => {
