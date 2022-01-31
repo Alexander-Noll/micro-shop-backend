@@ -6,7 +6,7 @@ export class Customer {
   name: string;
 
   @Prop({ required: true })
-  lastAddress: string;
+  adress: string;
 }
 
 export const CustomerSchema = SchemaFactory.createForClass(Customer);

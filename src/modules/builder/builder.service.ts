@@ -82,12 +82,12 @@ export class BuilderService implements OnModuleInit {
   async placeOrder(params: PlaceOrderDto) {
     const result = await this.ordersModel
       .findOneAndUpdate(
-        { code: params.order },
+        { name: params.order },
         {
-          code: params.order,
+          name: params.order,
           product: params.product,
           customer: params.customer,
-          address: params.address,
+          adress: params.adress,
           state: 'order placed',
         },
         { upsert: true, new: true },
@@ -102,7 +102,7 @@ export class BuilderService implements OnModuleInit {
         },
         {
           name: params.customer,
-          lastAddress: params.address,
+          adress: params.adress,
         },
         { upsert: true, new: true },
       )
@@ -110,7 +110,7 @@ export class BuilderService implements OnModuleInit {
 
     console.log(`Customer: \n ${JSON.stringify(newCustomer, null, 3)}`);
     console.log(params.customer);
-    console.log(params.address);
+    console.log(params.adress);
 
     const event = {
       blockId: params.order,
@@ -293,7 +293,7 @@ export class BuilderService implements OnModuleInit {
         const newOrder = await this.ordersModel
           .findOneAndUpdate(
             {
-              code: event.payload.code,
+              name: event.payload.name,
             },
             event.payload,
             { upsert: true, new: true },
@@ -308,7 +308,7 @@ export class BuilderService implements OnModuleInit {
             },
             {
               name: event.payload.customer,
-              lastAddress: event.payload.address,
+              adress: event.payload.adress,
             },
             { upsert: true, new: true },
           )

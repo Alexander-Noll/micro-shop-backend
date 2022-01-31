@@ -8,7 +8,8 @@ import { BuilderModule } from './modules/builder/builder.module';
 @Module({
   imports: [
     MongooseModule.forRoot(
-      'mongodb+srv://pascal:ptE0t5Tr2qaOagnd@microservicescluster.wos3s.mongodb.net/pascal-shop?retryWrites=true&w=majority',
+      "mongodb+srv://Alex:1234@alexcluster.lfqa1.mongodb.net/Shop?retryWrites=true&w=majority",
+ 
     ),
     BuilderModule,
     HttpModule,

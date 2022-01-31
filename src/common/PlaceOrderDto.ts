@@ -15,5 +15,5 @@ export class PlaceOrderDto{
 
     @IsNotEmpty()
     @IsString()
-    address: string;
+    adress: string;
 }
